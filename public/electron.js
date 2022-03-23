@@ -1,13 +1,13 @@
 const path = require("path");
 
-const { app, BrowserWindow, Menu } = require("electron");
+const { app, BrowserWindow, Menu, globalShortcut } = require("electron");
 const isDev = require("electron-is-dev");
 
 function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 700,
     webPreferences: {
       nodeIntegration: true,
     },
@@ -24,6 +24,12 @@ function createWindow() {
   if (isDev) {
     win.webContents.openDevTools({ mode: "detach" });
   }
+
+  if (process.platform === 'darwin') {
+    globalShortcut.register('Command+Q', () => {
+        app.quit();
+    })
+}
 }
 
 const menu = new Menu();

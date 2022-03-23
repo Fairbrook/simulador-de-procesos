@@ -1,15 +1,12 @@
 {
-  "name": "aspiradora",
+  "name": "procesos",
   "version": "0.1.0",
   "private": true,
   "main": "public/electron.js",
-  "description": "Simulador de aspiradora",
+  "description": "Simulador de procesos",
   "contributors": [
     {
       "name": "Kevin Martinez"
-    },
-    {
-      "name": "Arturo Carrillo"
     }
   ],
   "homepage": "./",
@@ -56,6 +53,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "build":{
+    "appId":"com.example.simulador",
+    "productName": "Simulador de procesos"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.2",

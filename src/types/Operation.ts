@@ -6,33 +6,43 @@ export enum Operator {
   Pow,
 }
 
-export class Operation {
-  public result: number | undefined;
+const operatorToStr = {
+  [Operator.Add]: "+",
+  [Operator.Sub]: "-",
+  [Operator.Mul]: "*",
+  [Operator.Div]: "/",
+  [Operator.Pow]: "^",
+};
+export interface Operation {
+  result?: number;
+  operator: Operator;
+  operand_a: number;
+  operand_b: number;
+}
 
-  constructor(
-    public operator: Operator,
-    public operand_a: number,
-    public operant_b: number
-  ) {}
-
-  public calc() {
-    this.result = this.operand_a;
-    switch (this.operator) {
-      case Operator.Add:
-        this.result += this.operant_b;
-        return;
-      case Operator.Sub:
-        this.result += this.operant_b;
-        return;
-      case Operator.Div:
-        this.result /= this.operant_b;
-        return;
-      case Operator.Mul:
-        this.result *= this.operant_b;
-        return;
-      case Operator.Pow:
-        this.result = Math.pow(this.result, this.operant_b);
-        return;
-    }
+export function calc(operation: Operation): Operation {
+  const _copy = { ...operation };
+  _copy.result = _copy.operand_a;
+  switch (_copy.operator) {
+    case Operator.Add:
+      _copy.result += _copy.operand_b;
+      return _copy;
+    case Operator.Sub:
+      _copy.result -= _copy.operand_b;
+      return _copy;
+    case Operator.Div:
+      _copy.result /= _copy.operand_b;
+      return _copy;
+    case Operator.Mul:
+      _copy.result *= _copy.operand_b;
+      return _copy;
+    case Operator.Pow:
+      _copy.result = Math.pow(_copy.result, _copy.operand_b);
+      return _copy;
   }
+}
+export function formatOperation(operation: Operation): string {
+  return `${operation.operand_a} ${operatorToStr[operation.operator]} ${
+    operation.operand_b
+  }`;
 }

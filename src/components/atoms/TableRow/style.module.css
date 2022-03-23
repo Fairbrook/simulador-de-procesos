@@ -1,0 +1,23 @@
+.row{
+    display: flex;
+    text-align: center;
+    border-style: solid;
+    border-color: white;
+    align-items: center;
+    justify-content: center;
+}
+
+.row > *{
+    border-left-width: 1px;
+    border-right-width: 1px;
+    padding-left: .5rem;
+    padding-right: .5rem;
+    width: 8rem;
+}
+
+.row > *:first-child{
+    border-left-width: 0;
+}
+.row > *:last-child{
+    border-right-width: 0;
+}
