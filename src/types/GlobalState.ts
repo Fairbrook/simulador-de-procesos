@@ -1,3 +1,4 @@
+import { MAX_MEMORY_PROC } from "config/constants";
 import { generateRandomProcess } from "utils";
 import {
   Process,
@@ -21,6 +22,7 @@ export const stateToStr = {
 };
 
 export interface StateSnapshot {
+  news: Process[];
   ready: Process[];
   finished: Process[];
   blocked: Process[];
@@ -29,25 +31,44 @@ export interface StateSnapshot {
   state: State;
 }
 
-export function addProcess(snapshot: StateSnapshot) {
-  const nextIndex =
+function nextIndex(snapshot: StateSnapshot) {
+  return (
     snapshot.finished.length +
     snapshot.ready.length +
     snapshot.blocked.length +
+    snapshot.news.length +
     (snapshot.active ? 1 : 0) +
-    1;
-  const process = generateRandomProcess(nextIndex, snapshot.time);
+    1
+  );
+}
+
+function procInMemory(snapshot: StateSnapshot) {
+  return (
+    (snapshot.active ? 1 : 0) + snapshot.ready.length + snapshot.blocked.length
+  );
+}
+
+export function addProcess(snapshot: StateSnapshot) {
+  const index = nextIndex(snapshot);
+  const process = generateRandomProcess(index, snapshot.time);
   const newSnapshot = {
     ...snapshot,
   };
+
   if (!newSnapshot.active) {
     newSnapshot.active = start(process);
     return newSnapshot;
   }
+
+  if (procInMemory(snapshot) < MAX_MEMORY_PROC) {
+    newSnapshot.ready = [...newSnapshot.ready, process];
+    return newSnapshot;
+  }
+
   return {
     ...snapshot,
     state: State.Active,
-    ready: [...snapshot.ready, process],
+    news: [...snapshot.news, process],
   };
 }
 
@@ -66,6 +87,7 @@ export function tick(snapshot: StateSnapshot): StateSnapshot {
   };
   newSnapshot.time += 1;
   newSnapshot.ready = newSnapshot.ready.map((proc) => tickProcess(proc));
+
   if (newSnapshot.active) {
     newSnapshot.active = tickProcess(newSnapshot.active);
     if (newSnapshot.active.state === ProcessState.Finished) {
@@ -95,6 +117,11 @@ export function tick(snapshot: StateSnapshot): StateSnapshot {
     newSnapshot.blocked = still_blocked;
   }
 
+  if(newSnapshot.news.length && procInMemory(newSnapshot)<MAX_MEMORY_PROC){
+    newSnapshot.ready.push(newSnapshot.news[0])
+    newSnapshot.news = newSnapshot.news.slice(1)
+  }
+
   newSnapshot.state = updateState(newSnapshot);
   return newSnapshot;
 }
@@ -108,6 +135,10 @@ export function error(state: StateSnapshot): StateSnapshot {
   if (_copy.ready.length) {
     _copy.active = start(_copy.ready[0]);
     _copy.ready = _copy.ready.slice(1);
+  }
+  if(_copy.news.length && procInMemory(_copy)<MAX_MEMORY_PROC){
+    _copy.ready = [..._copy.ready, _copy.news[0]]
+    _copy.news = _copy.news.slice(1)
   }
   return _copy;
 }
@@ -138,7 +169,6 @@ export function play(snapshot: StateSnapshot) {
     state: State.Active,
   };
 }
-
 
 // export function run() {
 //   this.state = State.Active;

@@ -13,6 +13,7 @@ interface GlobalProviderProps {
 }
 
 const initialState: StateSnapshot = {
+  news: [],
   blocked: [],
   finished: [],
   ready: [],
