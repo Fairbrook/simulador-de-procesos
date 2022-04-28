@@ -1,6 +1,6 @@
-import Modal from "components/atoms/Modal";
-import ProcessRow from "components/atoms/ProcessRow";
-import { Process } from "types/Process";
+import Modal from 'components/atoms/Modal';
+import ProcessRow from 'components/atoms/ProcessRow';
+import { Process } from 'types/Process';
 
 export interface BCPModalProps {
   isOpen: boolean;

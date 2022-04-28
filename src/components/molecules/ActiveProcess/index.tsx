@@ -1,15 +1,16 @@
-import ProgressBar from "components/atoms/ProgressBar";
-import TimeStampt from "components/atoms/TimeStampt";
-import { formatOperation } from "types/Operation";
-import { calcRemainingSeconds, Process } from "types/Process";
-
+import ProgressBar from 'components/atoms/ProgressBar';
+import TimeStampt from 'components/atoms/TimeStampt';
+import { formatOperation } from 'types/Operation';
+import { calcRemainingSeconds, Process } from 'types/Process';
 
 interface ActiveProcessProps {
   process?: Process;
   className?: string;
+  quantum?: number;
 }
 export default function ActiveProcess({
   process,
+  quantum,
   className,
 }: ActiveProcessProps) {
   if (!process) {
@@ -39,9 +40,16 @@ export default function ActiveProcess({
           <b className="w-32 block">Estimado: </b>
           <TimeStampt seconds={process.estimated} />
         </h2>
-        <h2 className="text-left flex flex-1 mb-2">
+        <h2 className="text-left flex flex-1">
           <b className="w-32 block">Restante: </b>
           <TimeStampt seconds={calcRemainingSeconds(process)} />
+        </h2>
+
+      </div>
+      <div className="flex">
+        <h2 className="text-left flex flex-1 mb-2">
+          <b className="w-32 block">Quantum: </b>
+          <TimeStampt seconds={quantum} />
         </h2>
       </div>
       <ProgressBar

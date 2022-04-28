@@ -1,21 +1,22 @@
 import TableRow from 'components/atoms/TableRow';
 import TimeStampt from 'components/atoms/TimeStampt';
 import { calcRemainingSeconds, Process } from 'types/Process';
-import React from 'react';
 
 export interface TableProps {
   data: Process[];
   className?: string;
 }
-export default function ReadyTable({ data, className }: TableProps) {
+export default function NewsTable({ data, className }: TableProps) {
   return (
     <div className={className}>
-      <h1 className="text-lg text-blue-200 text-left mb-4">Procesos Listos</h1>
+      <h1 className="text-lg text-blue-200 text-left mb-4">
+        Procesos Nuevos #
+        {data.length}
+      </h1>
 
       <TableRow className="border-b-2">
         <h2 className="font-bold">PID</h2>
         <h2 className="font-bold">Estimado</h2>
-        <h2 className="font-bold">Restante</h2>
       </TableRow>
       <div>
         {data.map((proc) => (

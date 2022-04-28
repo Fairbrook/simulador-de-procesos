@@ -1,6 +1,6 @@
 /* This example requires Tailwind CSS v2.0+ */
-import { Fragment } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 
 interface ModalProps {
   open: boolean;
@@ -9,7 +9,6 @@ interface ModalProps {
 }
 
 export default function Modal({ open, setOpen, children }: ModalProps) {
-
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog

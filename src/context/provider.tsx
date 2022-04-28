@@ -1,7 +1,7 @@
-import React, { ReactElement, useReducer } from "react";
-import { State, StateSnapshot } from "types/GlobalState";
-import { Action } from "./actions";
-import StateReducer from "./reducer";
+import React, { ReactElement, useMemo, useReducer } from 'react';
+import { State, StateSnapshot } from 'types/GlobalState';
+import { Action } from './actions';
+import StateReducer from './reducer';
 
 interface ContextInterface {
   dispatch: React.Dispatch<Action>;
@@ -20,6 +20,7 @@ const initialState: StateSnapshot = {
   state: State.Finished,
   time: 0,
   active: undefined,
+  quantum: 0,
 };
 
 export const GlobalContext = React.createContext<ContextInterface>({
@@ -29,9 +30,9 @@ export const GlobalContext = React.createContext<ContextInterface>({
 
 export default function GlobalProvider({ children }: GlobalProviderProps) {
   const [state, dispatch] = useReducer(StateReducer, initialState);
-
+  const value = useMemo(() => ({ state, dispatch }), [state, dispatch]);
   return (
-    <GlobalContext.Provider value={{ state, dispatch }}>
+    <GlobalContext.Provider value={value}>
       {children}
     </GlobalContext.Provider>
   );

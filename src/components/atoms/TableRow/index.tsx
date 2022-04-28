@@ -1,5 +1,5 @@
-import { ReactElement } from "react";
-import style from "./style.module.css";
+import { ReactElement } from 'react';
+import style from './style.module.css';
 
 export interface TableRowProps {
   children: ReactElement | ReactElement[];

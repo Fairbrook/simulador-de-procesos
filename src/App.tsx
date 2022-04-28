@@ -1,14 +1,14 @@
-import ActiveProcess from "components/molecules/ActiveProcess";
-import BCPModal from "components/molecules/BCPModal";
-import BlockedTable from "components/molecules/BlockedTable";
-import FinishedTable from "components/molecules/FinishedTable";
-import GlobalMetrics from "components/molecules/GlobalMetrics";
-import ReadyTable from "components/molecules/ReadyTable";
-
-import useGlobal from "hooks/useGlobal";
-import { useEffect, useRef, useState } from "react";
-import { State } from "types/GlobalState";
-import "./App.css";
+import ActiveProcess from 'components/molecules/ActiveProcess';
+import BCPModal from 'components/molecules/BCPModal';
+import BlockedTable from 'components/molecules/BlockedTable';
+import FinishedTable from 'components/molecules/FinishedTable';
+import GlobalMetrics from 'components/molecules/GlobalMetrics';
+import NewsTable from 'components/molecules/NewsTable';
+import ReadyTable from 'components/molecules/ReadyTable';
+import React, { useEffect, useRef, useState } from 'react';
+import useGlobal from 'hooks/useGlobal';
+import { State } from 'types/GlobalState';
+import './App.css';
 
 function App() {
   const {
@@ -28,56 +28,60 @@ function App() {
     timeout.current = setInterval(() => tick(), 1000);
     const cb = (ev: KeyboardEvent) => {
       switch (ev.key) {
-        case "n":
+        case 'n':
           return newProcess();
-        case "w":
+        case 'w':
           return interrupt();
-        case "b":
+        case 'b':
           pause();
           return setOpen(true);
-        case "e":
+        case 'e':
           return finishWithError();
-        case "p":
+        case 'p':
           return pause();
-        case "c":
+        case 'c':
           return play();
+        default:
+          return null;
       }
     };
-    document.addEventListener("keydown", cb);
+    document.addEventListener('keydown', cb);
     return () => {
-      document.removeEventListener("keydown", cb);
+      document.removeEventListener('keydown', cb);
       if (timeout.current) {
         clearInterval(timeout.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (state.state === State.Finished && allProcesses.length) {
       setOpen(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.state]);
 
   return (
     <div className="App">
       <header className="App-header">
         <div className="flex justify-between main w-full">
-          <ReadyTable data={state.ready} className="mr-4" />
+          <div className="mr-4">
+            <NewsTable data={state.news} className="mb-8" />
+            <ReadyTable data={state.ready} />
+          </div>
           <BlockedTable data={state.blocked} className="mr-4" />
           <FinishedTable data={state.finished} className="mr-4" />
         </div>
         <div className="w-full mt-10 flex-1 flex">
           <ActiveProcess
             process={state.active}
+            quantum={state.quantum}
             className="w-6/12 border-2 border-green-100 border-solid rounded-md p-5"
           />
           <div className="flex-1">
-            <GlobalMetrics state={state}></GlobalMetrics>
+            <GlobalMetrics state={state} />
           </div>
         </div>
-        <div className="absolute bottom-3"></div>
+        <div className="absolute bottom-3" />
       </header>
       <BCPModal
         isOpen={bcpOpen}

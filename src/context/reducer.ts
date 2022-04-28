@@ -6,8 +6,8 @@ import {
   play,
   StateSnapshot,
   tick,
-} from "types/GlobalState";
-import { Action, ActionsTypes } from "./actions";
+} from 'types/GlobalState';
+import { Action, ActionsTypes } from './actions';
 
 export default function ReducerState(snapshot: StateSnapshot, action: Action) {
   switch (action.type) {

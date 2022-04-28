@@ -1,7 +1,8 @@
-import TableRow from "components/atoms/TableRow";
-import { formatOperation } from "types/Operation";
-import { Process, State } from "types/Process";
-import { fixNumber } from "utils";
+import TableRow from 'components/atoms/TableRow';
+import { formatOperation } from 'types/Operation';
+import { Process, State } from 'types/Process';
+import { fixNumber } from 'utils';
+
 export interface TableProps {
   data: Process[];
   className?: string;
@@ -25,7 +26,7 @@ export default function FinishedTable({ data, className }: TableProps) {
             <div>{formatOperation(proc.operation)}</div>
             <div className="text-left">
               {proc.state === State.Error
-                ? "Error"
+                ? 'Error'
                 : fixNumber(proc.operation.result || 0)}
             </div>
           </TableRow>

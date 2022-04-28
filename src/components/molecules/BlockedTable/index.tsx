@@ -1,6 +1,6 @@
-import TableRow from "components/atoms/TableRow";
-import TimeStampt from "components/atoms/TimeStampt";
-import { Process } from "types/Process";
+import TableRow from 'components/atoms/TableRow';
+import TimeStampt from 'components/atoms/TimeStampt';
+import { Process } from 'types/Process';
 
 export interface TableProps {
   data: Process[];
@@ -20,7 +20,7 @@ export default function BlockedTable({ data, className }: TableProps) {
         {data.map((proc) => (
           <TableRow key={proc.PID}>
             <div>{proc.PID}</div>
-            <TimeStampt seconds={proc.metrics.blocked_seconds}></TimeStampt>
+            <TimeStampt seconds={proc.metrics.blocked_seconds} />
           </TableRow>
         ))}
       </div>

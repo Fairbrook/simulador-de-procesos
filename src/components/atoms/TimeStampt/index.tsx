@@ -1,4 +1,4 @@
-import { formatSeconds } from "utils";
+import { formatSeconds } from 'utils';
 
 export interface TimeStamptProps {
   seconds: number | undefined;

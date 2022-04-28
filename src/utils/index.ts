@@ -1,5 +1,5 @@
-import { Operation, Operator } from "types/Operation";
-import { newProcess } from "types/Process";
+import { Operation, Operator } from 'types/Operation';
+import { newProcess } from 'types/Process';
 
 function randomOperator() {
   const r = Math.floor(Math.random() * 5);
@@ -26,7 +26,7 @@ export function generateRandomProcess(index: number, time: number) {
 }
 
 export function formatSeconds(seconds: number | undefined): string {
-  if (seconds === undefined) return "N/A";
+  if (seconds === undefined) return 'N/A';
   return `${`${Math.floor(seconds / 60) + 100}`.substring(1)}:${`${
     (seconds % 60) + 100
   }`.substring(1)}`;
@@ -34,13 +34,13 @@ export function formatSeconds(seconds: number | undefined): string {
 
 export function fixNumber(num: number): string {
   let str = num.toString();
-  const [int, decWithEx] = str.split(".");
+  const [int, decWithEx] = str.split('.');
   str = int;
   if (decWithEx) {
-    const [dec, ex] = decWithEx.split("e");
-    str += "." + dec.substring(0, 4);
+    const [dec, ex] = decWithEx.split('e');
+    str += `.${dec.substring(0, 4)}`;
     if (ex) {
-      str += "e" + ex;
+      str += `e${ex}`;
     }
   }
   return str;

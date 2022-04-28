@@ -1,5 +1,5 @@
-import { MAX_MEMORY_PROC } from "config/constants";
-import { generateRandomProcess } from "utils";
+import { MAX_MEMORY_PROC, QUANTUM } from 'config/constants';
+import { generateRandomProcess } from 'utils';
 import {
   Process,
   start,
@@ -7,7 +7,8 @@ import {
   tick as tickProcess,
   error as processError,
   interrupt as processInterrupt,
-} from "./Process";
+  ready,
+} from './Process';
 
 export enum State {
   Active,
@@ -16,9 +17,9 @@ export enum State {
 }
 
 export const stateToStr = {
-  [State.Active]: "Procesando",
-  [State.Paused]: "Pausado",
-  [State.Finished]: "Terminado",
+  [State.Active]: 'Procesando',
+  [State.Paused]: 'Pausado',
+  [State.Finished]: 'Terminado',
 };
 
 export interface StateSnapshot {
@@ -29,16 +30,17 @@ export interface StateSnapshot {
   active: Process | undefined;
   time: number;
   state: State;
+  quantum: number;
 }
 
 function nextIndex(snapshot: StateSnapshot) {
   return (
-    snapshot.finished.length +
-    snapshot.ready.length +
-    snapshot.blocked.length +
-    snapshot.news.length +
-    (snapshot.active ? 1 : 0) +
-    1
+    snapshot.finished.length
+    + snapshot.ready.length
+    + snapshot.blocked.length
+    + snapshot.news.length
+    + (snapshot.active ? 1 : 0)
+    + 1
   );
 }
 
@@ -61,7 +63,7 @@ export function addProcess(snapshot: StateSnapshot) {
   }
 
   if (procInMemory(snapshot) < MAX_MEMORY_PROC) {
-    newSnapshot.ready = [...newSnapshot.ready, process];
+    newSnapshot.ready = [...newSnapshot.ready, ready(process)];
     return newSnapshot;
   }
 
@@ -86,11 +88,22 @@ export function tick(snapshot: StateSnapshot): StateSnapshot {
     ...snapshot,
   };
   newSnapshot.time += 1;
+  newSnapshot.quantum += 1;
   newSnapshot.news = newSnapshot.news.map((proc) => tickProcess(proc));
   newSnapshot.ready = newSnapshot.ready.map((proc) => tickProcess(proc));
 
   if (newSnapshot.active) {
+    if (newSnapshot.quantum > QUANTUM) {
+      if (newSnapshot.ready.length) {
+        newSnapshot.ready.push(ready(newSnapshot.active));
+        newSnapshot.active = start(newSnapshot.ready[0]);
+        newSnapshot.ready.splice(0, 1);
+      }
+      newSnapshot.quantum = 0;
+    }
+
     newSnapshot.active = tickProcess(newSnapshot.active);
+
     if (newSnapshot.active.state === ProcessState.Finished) {
       newSnapshot.finished = [...newSnapshot.finished, newSnapshot.active];
       newSnapshot.active = undefined;
@@ -98,29 +111,30 @@ export function tick(snapshot: StateSnapshot): StateSnapshot {
         newSnapshot.active = start(newSnapshot.ready[0]);
         newSnapshot.ready.splice(0, 1);
       }
+      newSnapshot.quantum = 0;
     }
   }
 
   if (newSnapshot.blocked.length) {
-    const still_blocked: Array<Process> = [];
+    const stillBlocked: Array<Process> = [];
     newSnapshot.blocked.forEach((proc) => {
-      const _proc = tickProcess(proc);
-      if (_proc.state === ProcessState.Blocked) {
-        still_blocked.push(_proc);
+      const procCopy = tickProcess(proc);
+      if (procCopy.state === ProcessState.Blocked) {
+        stillBlocked.push(procCopy);
         return;
       }
       if (!newSnapshot.active) {
-        newSnapshot.active = start(_proc);
+        newSnapshot.active = start(procCopy);
         return;
       }
-      newSnapshot.ready.push(_proc);
+      newSnapshot.ready.push(procCopy);
     });
-    newSnapshot.blocked = still_blocked;
+    newSnapshot.blocked = stillBlocked;
   }
 
-  if(newSnapshot.news.length && procInMemory(newSnapshot)<MAX_MEMORY_PROC){
-    newSnapshot.ready.push(newSnapshot.news[0])
-    newSnapshot.news = newSnapshot.news.slice(1)
+  if (newSnapshot.news.length && procInMemory(newSnapshot) < MAX_MEMORY_PROC) {
+    newSnapshot.ready.push(ready(newSnapshot.news[0]));
+    newSnapshot.news = newSnapshot.news.slice(1);
   }
 
   newSnapshot.state = updateState(newSnapshot);
@@ -129,32 +143,34 @@ export function tick(snapshot: StateSnapshot): StateSnapshot {
 
 export function error(state: StateSnapshot): StateSnapshot {
   if (!state.active) return state;
-  const _copy = { ...state };
-  _copy.active = processError(state.active);
-  _copy.finished = [..._copy.finished, _copy.active];
-  _copy.active = undefined;
-  if (_copy.ready.length) {
-    _copy.active = start(_copy.ready[0]);
-    _copy.ready = _copy.ready.slice(1);
+  const copy = { ...state };
+  copy.active = processError(state.active);
+  copy.finished = [...copy.finished, copy.active];
+  copy.active = undefined;
+  copy.quantum = 0;
+  if (copy.ready.length) {
+    copy.active = start(copy.ready[0]);
+    copy.ready = copy.ready.slice(1);
   }
-  if(_copy.news.length && procInMemory(_copy)<MAX_MEMORY_PROC){
-    _copy.ready = [..._copy.ready, _copy.news[0]]
-    _copy.news = _copy.news.slice(1)
+  if (copy.news.length && procInMemory(copy) < MAX_MEMORY_PROC) {
+    copy.ready = [...copy.ready, ready(copy.news[0])];
+    copy.news = copy.news.slice(1);
   }
-  return _copy;
+  return copy;
 }
 
 export function interrupt(state: StateSnapshot): StateSnapshot {
   if (!state.active) return state;
-  const _copy = { ...state };
-  _copy.active = processInterrupt(state.active);
-  _copy.blocked = [..._copy.blocked, _copy.active];
-  _copy.active = undefined;
-  if (_copy.ready.length) {
-    _copy.active = start(_copy.ready[0]);
-    _copy.ready = _copy.ready.slice(1);
+  const copy = { ...state };
+  copy.quantum = 0;
+  copy.active = processInterrupt(state.active);
+  copy.blocked = [...copy.blocked, copy.active];
+  copy.active = undefined;
+  if (copy.ready.length) {
+    copy.active = start(copy.ready[0]);
+    copy.ready = copy.ready.slice(1);
   }
-  return _copy;
+  return copy;
 }
 
 export function pause(snapshot: StateSnapshot) {

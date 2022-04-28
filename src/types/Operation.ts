@@ -7,11 +7,11 @@ export enum Operator {
 }
 
 const operatorToStr = {
-  [Operator.Add]: "+",
-  [Operator.Sub]: "-",
-  [Operator.Mul]: "*",
-  [Operator.Div]: "/",
-  [Operator.Pow]: "^",
+  [Operator.Add]: '+',
+  [Operator.Sub]: '-',
+  [Operator.Mul]: '*',
+  [Operator.Div]: '/',
+  [Operator.Pow]: '^',
 };
 export interface Operation {
   result?: number;
@@ -21,24 +21,26 @@ export interface Operation {
 }
 
 export function calc(operation: Operation): Operation {
-  const _copy = { ...operation };
-  _copy.result = _copy.operand_a;
-  switch (_copy.operator) {
+  const copy = { ...operation };
+  copy.result = copy.operand_a;
+  switch (copy.operator) {
     case Operator.Add:
-      _copy.result += _copy.operand_b;
-      return _copy;
+      copy.result += copy.operand_b;
+      return copy;
     case Operator.Sub:
-      _copy.result -= _copy.operand_b;
-      return _copy;
+      copy.result -= copy.operand_b;
+      return copy;
     case Operator.Div:
-      _copy.result /= _copy.operand_b;
-      return _copy;
+      copy.result /= copy.operand_b;
+      return copy;
     case Operator.Mul:
-      _copy.result *= _copy.operand_b;
-      return _copy;
+      copy.result *= copy.operand_b;
+      return copy;
     case Operator.Pow:
-      _copy.result = Math.pow(_copy.result, _copy.operand_b);
-      return _copy;
+      copy.result **= copy.operand_b;
+      return copy;
+    default:
+      return copy;
   }
 }
 export function formatOperation(operation: Operation): string {

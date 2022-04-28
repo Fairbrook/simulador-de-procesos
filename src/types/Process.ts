@@ -1,5 +1,5 @@
-import { calc, Operation } from "./Operation";
-import { TimeMetrics } from "./TimeMetrics";
+import { calc, Operation } from './Operation';
+import { TimeMetrics } from './TimeMetrics';
 
 export enum State {
   Executing,
@@ -7,13 +7,15 @@ export enum State {
   Ready,
   Finished,
   Error,
+  New,
 }
 export const stateTostr = {
-  [State.Executing]: "En ejecución",
-  [State.Blocked]: "Bloqueado",
-  [State.Ready]: "Listo",
-  [State.Finished]: "Terminado",
-  [State.Error]: "Error",
+  [State.Executing]: 'En ejecución',
+  [State.Blocked]: 'Bloqueado',
+  [State.Ready]: 'Listo',
+  [State.Finished]: 'Terminado',
+  [State.Error]: 'Error',
+  [State.New]: 'Nuevo',
 };
 
 export interface Process {
@@ -23,11 +25,12 @@ export interface Process {
   estimated: number;
   operation: Operation;
 }
+
 export function newProcess(
   PID: number,
   estimated: number,
   operation: Operation,
-  current_time: number
+  current_time: number,
 ): Process {
   const metrics = {
     arrival_time: current_time,
@@ -39,7 +42,7 @@ export function newProcess(
   };
   return {
     metrics,
-    state: State.Ready,
+    state: State.New,
     PID,
     operation,
     estimated,
@@ -48,10 +51,10 @@ export function newProcess(
 
 export function calcCurrentTime(proc: Process) {
   return (
-    proc.metrics.arrival_time +
-    (proc.metrics.waiting_seconds || 0) +
-    proc.metrics.service_seconds +
-    proc.metrics.blocked_seconds
+    proc.metrics.arrival_time
+    + (proc.metrics.waiting_seconds || 0)
+    + proc.metrics.service_seconds
+    + proc.metrics.blocked_seconds
   );
 }
 
@@ -84,24 +87,24 @@ export function tick(proc: Process): Process {
 }
 
 export function error(proc: Process): Process {
-  const _copy = { ...proc };
-  _copy.state = State.Error;
-  _copy.metrics.finish_time = calcCurrentTime(_copy);
-  return _copy;
+  const copy = { ...proc };
+  copy.state = State.Error;
+  copy.metrics.finish_time = calcCurrentTime(copy);
+  return copy;
 }
 
 export function interrupt(proc: Process): Process {
-  const _copy = { ...proc };
-  _copy.state = State.Blocked;
-  return _copy;
+  const copy = { ...proc };
+  copy.state = State.Blocked;
+  return copy;
 }
 
 export function start(proc: Process): Process {
   const copy = { ...proc };
   copy.state = State.Executing;
   if (
-    copy.metrics.service_seconds === 0 &&
-    copy.metrics.blocked_seconds === 0
+    copy.metrics.service_seconds === 0
+    && copy.metrics.blocked_seconds === 0
   ) {
     copy.metrics.response_seconds = copy.metrics.waiting_seconds;
   }
@@ -109,8 +112,7 @@ export function start(proc: Process): Process {
 }
 
 export function calcRemainingSeconds(proc: Process): number | undefined {
-  if (proc.state === State.Error || proc.state === State.Finished)
-    return undefined;
+  if (proc.state === State.Error || proc.state === State.Finished) return undefined;
   return proc.estimated - proc.metrics.service_seconds;
 }
 
@@ -118,4 +120,8 @@ export function calcRemainingBlocked(proc: Process) {
   if (proc.state !== State.Blocked) return undefined;
   const seconds = proc.metrics.blocked_seconds;
   return 10 - (seconds % 10);
+}
+
+export function ready(proc:Process):Process {
+  return { ...proc, state: State.Ready };
 }

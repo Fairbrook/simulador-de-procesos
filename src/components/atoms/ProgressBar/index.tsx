@@ -7,7 +7,7 @@ export default function ProgressBar({ percentage }: ProgressBarProps) {
       <div
         className="bg-green-400 h-full rounded-md"
         style={{ width: `${percentage * 100}%` }}
-      ></div>
+      />
     </div>
   );
 }
