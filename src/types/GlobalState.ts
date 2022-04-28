@@ -86,6 +86,7 @@ export function tick(snapshot: StateSnapshot): StateSnapshot {
     ...snapshot,
   };
   newSnapshot.time += 1;
+  newSnapshot.news = newSnapshot.news.map((proc) => tickProcess(proc));
   newSnapshot.ready = newSnapshot.ready.map((proc) => tickProcess(proc));
 
   if (newSnapshot.active) {
