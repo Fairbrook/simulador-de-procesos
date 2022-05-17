@@ -1,5 +1,7 @@
+import { MEMORY_SIZE } from 'config/constants';
 import React, { ReactElement, useMemo, useReducer } from 'react';
 import { State, StateSnapshot } from 'types/GlobalState';
+import { initMMU } from 'types/MMU';
 import { Action } from './actions';
 import StateReducer from './reducer';
 
@@ -20,6 +22,7 @@ const initialState: StateSnapshot = {
   state: State.Finished,
   time: 0,
   active: undefined,
+  mmu: initMMU(MEMORY_SIZE),
   quantum: 0,
 };
 

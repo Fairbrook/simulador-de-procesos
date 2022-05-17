@@ -8,8 +8,17 @@ export default function useGlobal() {
     const processes = state.active
       ? [state.active, ...state.ready]
       : [...state.ready];
-    return processes.concat(state.blocked).concat(state.finished).concat(state.news);
+    return processes
+      .concat(state.blocked)
+      .concat(state.finished)
+      .concat(state.news);
   }, [state]);
+  const processesInMemory = useMemo(
+    () => (state.active
+      ? [state.active].concat(state.ready).concat(state.blocked)
+      : state.ready.concat(state.blocked)),
+    [state],
+  );
   const newProcess = useCallback(
     () => dispatch({ type: ActionsTypes.New }),
     [dispatch],
@@ -44,5 +53,6 @@ export default function useGlobal() {
     play,
     newProcess,
     allProcesses,
+    processesInMemory,
   };
 }

@@ -1,0 +1,10 @@
+.table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.frame {
+  border-width: 0.1rem;
+  border-bottom-width: 0.05rem;
+}

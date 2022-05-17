@@ -24,6 +24,7 @@ export interface Process {
   PID: number;
   estimated: number;
   operation: Operation;
+  space: number;
 }
 
 export function newProcess(
@@ -31,6 +32,7 @@ export function newProcess(
   estimated: number,
   operation: Operation,
   current_time: number,
+  space: number,
 ): Process {
   const metrics = {
     arrival_time: current_time,
@@ -46,6 +48,7 @@ export function newProcess(
     PID,
     operation,
     estimated,
+    space,
   };
 }
 
@@ -112,7 +115,7 @@ export function start(proc: Process): Process {
 }
 
 export function calcRemainingSeconds(proc: Process): number | undefined {
-  if (proc.state === State.Error || proc.state === State.Finished) return undefined;
+  if (proc.state === State.Error || proc.state === State.Finished) { return undefined; }
   return proc.estimated - proc.metrics.service_seconds;
 }
 
@@ -122,6 +125,6 @@ export function calcRemainingBlocked(proc: Process) {
   return 10 - (seconds % 10);
 }
 
-export function ready(proc:Process):Process {
+export function ready(proc: Process): Process {
   return { ...proc, state: State.Ready };
 }

@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import useGlobal from 'hooks/useGlobal';
 import { State } from 'types/GlobalState';
 import './App.css';
+import FramesTable from 'components/molecules/FramesTable';
 
 function App() {
   const {
@@ -66,9 +67,10 @@ function App() {
         <div className="flex justify-between main w-full">
           <div className="mr-4">
             <NewsTable data={state.news} className="mb-8" />
-            <ReadyTable data={state.ready} />
+            <ReadyTable data={state.ready} className="mb-8" />
+            <BlockedTable data={state.blocked} />
           </div>
-          <BlockedTable data={state.blocked} className="mr-4" />
+          <FramesTable />
           <FinishedTable data={state.finished} className="mr-4" />
         </div>
         <div className="w-full mt-10 flex-1 flex">

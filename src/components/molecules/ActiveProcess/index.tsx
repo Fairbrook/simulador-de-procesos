@@ -44,12 +44,16 @@ export default function ActiveProcess({
           <b className="w-32 block">Restante: </b>
           <TimeStampt seconds={calcRemainingSeconds(process)} />
         </h2>
-
       </div>
+
       <div className="flex">
         <h2 className="text-left flex flex-1 mb-2">
           <b className="w-32 block">Quantum: </b>
           <TimeStampt seconds={quantum} />
+        </h2>
+        <h2 className="text-left flex flex-1">
+          <b className="w-32 block">Espacio: </b>
+          <span>{process.space}</span>
         </h2>
       </div>
       <ProgressBar

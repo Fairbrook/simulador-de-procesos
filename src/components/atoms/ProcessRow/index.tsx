@@ -73,6 +73,16 @@ export default function ProcessRow({ process }: ProcessRowProps) {
           <TimeStampt seconds={calcRemainingBlocked(process)} />
         </div>
       </div>
+
+      <div className="flex">
+        <div className="flex-1 flex">
+          <b className="w-52">Espacio: </b>
+          <span>
+            {process.space}
+          </span>
+        </div>
+      </div>
+
     </div>
   );
 }

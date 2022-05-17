@@ -22,7 +22,7 @@ export function generateRandomProcess(index: number, time: number) {
     operand_b: randomInt(0, 100),
   };
 
-  return newProcess(index, randomInt(7, 18), operation, time);
+  return newProcess(index, randomInt(7, 18), operation, time, randomInt(5, 23));
 }
 
 export function formatSeconds(seconds: number | undefined): string {

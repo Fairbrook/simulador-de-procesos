@@ -1,5 +1,8 @@
-import { MAX_MEMORY_PROC, QUANTUM } from 'config/constants';
+import { QUANTUM } from 'config/constants';
 import { generateRandomProcess } from 'utils';
+import {
+  allocate, deallocate, hasSpace, MMU,
+} from './MMU';
 import {
   Process,
   start,
@@ -31,6 +34,7 @@ export interface StateSnapshot {
   time: number;
   state: State;
   quantum: number;
+  mmu: MMU;
 }
 
 function nextIndex(snapshot: StateSnapshot) {
@@ -44,10 +48,58 @@ function nextIndex(snapshot: StateSnapshot) {
   );
 }
 
-function procInMemory(snapshot: StateSnapshot) {
-  return (
-    (snapshot.active ? 1 : 0) + snapshot.ready.length + snapshot.blocked.length
+export function updateState(snapshot: StateSnapshot) {
+  if (snapshot.state === State.Paused) return State.Paused;
+  if (snapshot.ready.length || snapshot.blocked.length || snapshot.active) {
+    return State.Active;
+  }
+  return State.Finished;
+}
+
+export function checkActiveProcess(snapshot: StateSnapshot): StateSnapshot {
+  if (snapshot.ready.length === 0) return snapshot;
+  if (snapshot.active) return snapshot;
+  const newSnapshot = { ...snapshot };
+  newSnapshot.active = start(newSnapshot.ready[0]);
+  newSnapshot.ready = [...newSnapshot.ready.slice(1)];
+  return newSnapshot;
+}
+
+export function checkProcesses(snapshot: StateSnapshot): StateSnapshot {
+  let activeSnapshot = checkActiveProcess(snapshot);
+  activeSnapshot.state = updateState(activeSnapshot);
+
+  if (activeSnapshot.news.length === 0) return activeSnapshot;
+
+  const nextReady = activeSnapshot.news.findIndex(
+    (proc) => hasSpace(activeSnapshot.mmu, proc) !== undefined,
   );
+  if (nextReady < 0) return activeSnapshot;
+
+  const spaceIndex = hasSpace(
+    activeSnapshot.mmu,
+    activeSnapshot.news[nextReady],
+  );
+  if (spaceIndex === undefined) return activeSnapshot;
+
+  const newSnapshot = { ...activeSnapshot };
+  newSnapshot.mmu = allocate(
+    newSnapshot.mmu,
+    spaceIndex,
+    newSnapshot.news[nextReady],
+  );
+  newSnapshot.ready = [
+    ...newSnapshot.ready,
+    ready(newSnapshot.news[nextReady]),
+  ];
+  newSnapshot.news = [
+    ...newSnapshot.news.slice(0, nextReady),
+    ...newSnapshot.news.slice(nextReady + 1),
+  ];
+
+  activeSnapshot = checkActiveProcess(newSnapshot);
+  activeSnapshot.state = updateState(newSnapshot);
+  return activeSnapshot;
 }
 
 export function addProcess(snapshot: StateSnapshot) {
@@ -55,31 +107,10 @@ export function addProcess(snapshot: StateSnapshot) {
   const process = generateRandomProcess(index, snapshot.time);
   const newSnapshot = {
     ...snapshot,
-  };
-
-  if (!newSnapshot.active) {
-    newSnapshot.active = start(process);
-    return newSnapshot;
-  }
-
-  if (procInMemory(snapshot) < MAX_MEMORY_PROC) {
-    newSnapshot.ready = [...newSnapshot.ready, ready(process)];
-    return newSnapshot;
-  }
-
-  return {
-    ...snapshot,
-    state: State.Active,
     news: [...snapshot.news, process],
   };
-}
 
-export function updateState(snapshot: StateSnapshot) {
-  if (snapshot.state === State.Paused) return State.Paused;
-  if (snapshot.ready.length || snapshot.blocked.length || snapshot.active) {
-    return State.Active;
-  }
-  return State.Finished;
+  return checkProcesses(newSnapshot);
 }
 
 export function tick(snapshot: StateSnapshot): StateSnapshot {
@@ -105,12 +136,9 @@ export function tick(snapshot: StateSnapshot): StateSnapshot {
     newSnapshot.active = tickProcess(newSnapshot.active);
 
     if (newSnapshot.active.state === ProcessState.Finished) {
+      newSnapshot.mmu = deallocate(newSnapshot.mmu, newSnapshot.active);
       newSnapshot.finished = [...newSnapshot.finished, newSnapshot.active];
       newSnapshot.active = undefined;
-      if (newSnapshot.ready.length) {
-        newSnapshot.active = start(newSnapshot.ready[0]);
-        newSnapshot.ready.splice(0, 1);
-      }
       newSnapshot.quantum = 0;
     }
   }
@@ -123,54 +151,35 @@ export function tick(snapshot: StateSnapshot): StateSnapshot {
         stillBlocked.push(procCopy);
         return;
       }
-      if (!newSnapshot.active) {
-        newSnapshot.active = start(procCopy);
-        return;
-      }
       newSnapshot.ready.push(procCopy);
     });
     newSnapshot.blocked = stillBlocked;
   }
 
-  if (newSnapshot.news.length && procInMemory(newSnapshot) < MAX_MEMORY_PROC) {
-    newSnapshot.ready.push(ready(newSnapshot.news[0]));
-    newSnapshot.news = newSnapshot.news.slice(1);
-  }
-
-  newSnapshot.state = updateState(newSnapshot);
-  return newSnapshot;
+  return checkActiveProcess(newSnapshot);
 }
 
 export function error(state: StateSnapshot): StateSnapshot {
   if (!state.active) return state;
   const copy = { ...state };
   copy.active = processError(state.active);
+  copy.mmu = deallocate(copy.mmu, copy.active);
   copy.finished = [...copy.finished, copy.active];
   copy.active = undefined;
   copy.quantum = 0;
-  if (copy.ready.length) {
-    copy.active = start(copy.ready[0]);
-    copy.ready = copy.ready.slice(1);
-  }
-  if (copy.news.length && procInMemory(copy) < MAX_MEMORY_PROC) {
-    copy.ready = [...copy.ready, ready(copy.news[0])];
-    copy.news = copy.news.slice(1);
-  }
-  return copy;
+
+  return checkProcesses(copy);
 }
 
 export function interrupt(state: StateSnapshot): StateSnapshot {
   if (!state.active) return state;
   const copy = { ...state };
-  copy.quantum = 0;
   copy.active = processInterrupt(state.active);
   copy.blocked = [...copy.blocked, copy.active];
   copy.active = undefined;
-  if (copy.ready.length) {
-    copy.active = start(copy.ready[0]);
-    copy.ready = copy.ready.slice(1);
-  }
-  return copy;
+  copy.quantum = 0;
+
+  return checkProcesses(copy);
 }
 
 export function pause(snapshot: StateSnapshot) {
