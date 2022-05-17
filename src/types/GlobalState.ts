@@ -156,7 +156,7 @@ export function tick(snapshot: StateSnapshot): StateSnapshot {
     newSnapshot.blocked = stillBlocked;
   }
 
-  return checkActiveProcess(newSnapshot);
+  return checkProcesses(newSnapshot);
 }
 
 export function error(state: StateSnapshot): StateSnapshot {
